@@ -1,0 +1,6 @@
+﻿  Course_8_Bank_Extension.cpp
+E:\CPP_projects\Course_8_Bank_Extension\Course_8_Bank_Extension\Course_8_Bank_Extension.cpp(37,26): warning C4267: '=': conversion from 'size_t' to 'short', possible loss of data
+E:\CPP_projects\Course_8_Bank_Extension\Course_8_Bank_Extension\Course_8_Bank_Extension.cpp(495,1): warning C4715: 'UpdateClientByAccountNumber': not all control paths return a value
+E:\CPP_projects\Course_8_Bank_Extension\Course_8_Bank_Extension\Course_8_Bank_Extension.cpp(526,1): warning C4715: 'DepositBalanceToClientByAccountNumber': not all control paths return a value
+E:\CPP_projects\Course_8_Bank_Extension\Course_8_Bank_Extension\Course_8_Bank_Extension.cpp(455,1): warning C4715: 'DeleteClientByAccountNumber': not all control paths return a value
+  Course_8_Bank_Extension.vcxproj -> E:\CPP_projects\Course_8_Bank_Extension\x64\Debug\Course_8_Bank_Extension.exe
