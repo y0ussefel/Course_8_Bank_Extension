@@ -756,7 +756,31 @@ short ReadMainMenueOption()
 
     return Choice;
 }
+short ReadManageUsersOption()
+{
+    cout << "Choose what do you want to do? [1 to 6]? ";
+    short Choice = 0;
+    cin >> Choice;
 
+    return Choice;
+}
+enum eUserOptions { eListUsers = 1, eAddUser = 2, eDeleteUser = 3, eUpdateUser = 4, eFindUser = 5, eBack = 6 };
+void PerfromUserOptions(eUserOptions UserOptions);
+void ShowUsersOptionsMenue()
+{
+    system("cls");
+    cout << "===========================================\n";
+    cout << "\t\tManage Users Menu Screen\n";
+    cout << "===========================================\n";
+    cout << "\t[1] List Users.\n";
+    cout << "\t[2] Add New User.\n";
+    cout << "\t[3] Delete User.\n";
+    cout << "\t[4] Update User.\n";
+    cout << "\t[5] Find User.\n";
+    cout << "\t[6] Main Menu.\n";
+    cout << "===========================================\n";
+    PerfromUserOptions((eUserOptions)ReadManageUsersOption());
+}
 void PerfromMainMenueOption(enMainMenueOptions MainMenueOption)
 {
     switch (MainMenueOption)
@@ -796,6 +820,10 @@ void PerfromMainMenueOption(enMainMenueOptions MainMenueOption)
         system("cls");
         ShowTransactionsMenue();
         break;
+    case enMainMenueOptions::eManageUsers:
+        system("cls");
+        ShowUsersOptionsMenue();
+        break;
 
     case enMainMenueOptions::eLogout:
         system("cls");
@@ -809,7 +837,7 @@ void ShowMainMenue()
 {
     system("cls");
     cout << "===========================================\n";
-    cout << "\t\tMain Menue Screen\n";
+    cout << "\t\tMain Menu Screen\n";
     cout << "===========================================\n";
     cout << "\t[1] Show Client List.\n";
     cout << "\t[2] Add New Client.\n";
@@ -824,7 +852,8 @@ void ShowMainMenue()
 }
 struct stUser {
     string UserName, Password;
-        short Permission;
+    short Permission;
+    bool isRedFlag = false;
 };
 
 stUser ConvertUserLinetoRecord(string Line, string Seperator = "#//#")
@@ -885,6 +914,27 @@ vector <stUser> LoadUsersDataFromFile(string FileName)
     return vUsers;
 
 }
+vector<stUser> SaveUsersDateToFile(vector<stUser> vUsers, string FileName)
+{
+    fstream MyFile;
+    MyFile.open(FileName, ios::out);
+
+    string DateLine;
+    if (MyFile.is_open())
+    {
+        for (stUser& U : vUsers)
+        {
+            if (U.isRedFlag == false) {
+                DateLine = ConvertUserRecordToLine(U);
+                MyFile << DateLine << endl;
+            }
+        }
+        MyFile.close();
+    }
+
+    return vUsers;
+}
+
 void ShowLoginSceen()
 {
     cout << "===========================================\n";
@@ -924,10 +974,165 @@ void Authontification()
     cout << "\nInvalid Username or Password\n";
 
     }
-    
+
     system("cls");
     ShowMainMenue();
-   
+    
+}
+void PrintUserRecordBalanceLine(stUser User)
+{
+
+    cout << "| " << setw(15) << left << User.UserName;
+    cout << "| " << setw(15) << left << User.Password;
+    cout << "| " << setw(12) << left << User.Permission;
+
+}
+void ShowUserListScreen()
+{
+    vector<stUser> vUsers = LoadUsersDataFromFile(UsersFileName);
+    cout << "\n\t\t\t\t\Users List (" << vUsers.size() << ") User(s).";
+    cout << "\n_______________________________________________________";
+    cout << "_________________________________________\n" << endl;
+
+    cout << "| " << left << setw(15) << "User Name";
+    cout << "| " << left << setw(10) << "Password";
+    cout << "| " << left << setw(15) << "Permissions";
+
+    cout << "\n_______________________________________________________";
+    cout << "_________________________________________\n" << endl;
+
+    if (vUsers.size() == 0)
+    {
+        cout << "\t\t\t\tNo Users Available In the System!";
+
+    }
+    else {
+        for (stUser& User : vUsers)
+        {
+            PrintUserRecordBalanceLine(User);
+            cout << endl;
+        }
+    }
+    cout << "_________________________________________\n" << endl;
+}
+bool FindUserByUsername(string Username, vector<stUser> vUsers, stUser& User)
+{
+    for (stUser U : vUsers)
+    {
+        if (U.UserName == Username)
+        {
+            User = U;
+            return true;
+        }
+
+    }
+    return false;
+}
+
+string ReadUserName()
+{
+    string userName ="";
+    cout << "\nEnter User Name?";
+    cin >> userName;
+
+    return userName;
+}
+void PrintUserCard(stUser User)
+{
+    cout << "\nUsername : " << User.UserName;
+    cout << "\nPassword   : " << User.Password;
+
+}
+void ShowFindUserScreen()
+{
+    cout << "\n-----------------------------------\n";
+    cout << "\tFind User Screen";
+    cout << "\n-----------------------------------\n";
+
+    vector<stUser> vUsers = LoadUsersDataFromFile(UsersFileName);
+    stUser User;
+    string UserName = ReadUserName();
+
+    if (FindUserByUsername(UserName, vUsers, User)) {
+        PrintUserCard(User);
+    }
+    else {
+        cout << "\nUser With this "<<UserName<<" Not Found !";
+    }
+
+}
+void GoBackToManageUsersMenue()
+{
+    cout << "\n\nPress any key to go back to Transactions Menu...";
+    system("pause>0");
+    ShowUsersOptionsMenue();
+
+}
+
+stUser MarkUserAsRedFlag(stUser &User)
+{
+        User.isRedFlag = true;
+
+    return User;
+}
+
+bool DeleteUserByUserName(vector<stUser> &vUsers,string UserName)
+{
+    
+    stUser User;
+    char Answer = 'n';
+    if (FindUserByUsername(UserName, vUsers, User))
+    {
+        PrintUserCard(User);
+        cout << "\nDo You want to delete this user(Y/N)?\n";
+        cin >> Answer;
+        if (Answer == 'y' || Answer == 'Y')
+        {
+            MarkUserAsRedFlag(User);
+            SaveUsersDateToFile(vUsers, UsersFileName);
+
+            vUsers = LoadUsersDataFromFile(UsersFileName);
+
+            cout << "\n\User Deleted Successfully.";
+            return true;
+        }
+        else {
+            cout << "\User with User Name (" << UserName << ") is Not Found!";
+            return false;
+        }
+        
+    }
+    
+}
+void ShowDeleteUserScreen() {
+    cout << "\n-----------------------------------\n";
+    cout << "\tDelete User Screen";
+    cout << "\n-----------------------------------\n";
+    vector<stUser> vUsers = LoadUsersDataFromFile(UsersFileName);
+    string UserName = ReadUserName();
+    DeleteUserByUserName(vUsers, UserName);
+
+}
+void PerfromUserOptions(eUserOptions UserOptions) {
+    switch (UserOptions)
+    {
+    case eUserOptions::eListUsers:
+        system("cls");
+        ShowUserListScreen();
+        GoBackToManageUsersMenue();
+        break;
+    case eUserOptions::eFindUser:
+        system("cls");
+        ShowFindUserScreen();
+        GoBackToManageUsersMenue();
+        break;
+    case eUserOptions::eDeleteUser:
+        system("cls");
+        ShowDeleteUserScreen();
+        GoBackToManageUsersMenue();
+        break;
+    
+    }
 }
 int main()
 
