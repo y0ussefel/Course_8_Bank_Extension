@@ -1015,9 +1015,9 @@ void ShowUserListScreen()
     }
     cout << "_________________________________________\n" << endl;
 }
-bool FindUserByUsername(string Username, vector<stUser> vUsers, stUser& User)
+bool FindUserByUsername(string Username, vector<stUser> &vUsers, stUser& User)
 {
-    for (stUser U : vUsers)
+    for (stUser &U : vUsers)
     {
         if (U.UserName == Username)
         {
@@ -1069,11 +1069,19 @@ void GoBackToManageUsersMenue()
 
 }
 
-stUser MarkUserAsRedFlag(stUser &User)
+bool MarkUserAsRedFlag(string Username, vector<stUser>& vUsers)
 {
-        User.isRedFlag = true;
+    for (stUser& U : vUsers)
+    {
+        if (U.UserName == Username) {
 
-    return User;
+            U.isRedFlag = true;
+            return true;
+        }
+
+    }
+
+    return false;
 }
 
 bool DeleteUserByUserName(vector<stUser> &vUsers,string UserName)
@@ -1088,7 +1096,8 @@ bool DeleteUserByUserName(vector<stUser> &vUsers,string UserName)
         cin >> Answer;
         if (Answer == 'y' || Answer == 'Y')
         {
-            MarkUserAsRedFlag(User);
+            
+            MarkUserAsRedFlag(UserName,vUsers);
             SaveUsersDateToFile(vUsers, UsersFileName);
 
             vUsers = LoadUsersDataFromFile(UsersFileName);
@@ -1096,11 +1105,11 @@ bool DeleteUserByUserName(vector<stUser> &vUsers,string UserName)
             cout << "\n\User Deleted Successfully.";
             return true;
         }
-        else {
-            cout << "\User with User Name (" << UserName << ") is Not Found!";
-            return false;
-        }
         
+    }
+    else {
+        cout << "\User with User Name (" << UserName << ") is Not Found!";
+        return false;
     }
     
 }
@@ -1112,6 +1121,103 @@ void ShowDeleteUserScreen() {
     string UserName = ReadUserName();
     DeleteUserByUserName(vUsers, UserName);
 
+}
+bool UserExistByUserName(string Username)
+{
+    vector<stUser> vUsers = LoadUsersDataFromFile(UsersFileName);
+
+    for (stUser& U : vUsers)
+    {
+        if (U.UserName == Username)
+            return true;
+    }
+
+    return false;
+}
+int ReadPermission()
+{
+    int TotalPermissions = 0;
+    char Answer = 'n';
+    cout << "Do You want to give full access ? (y/n)\n";
+    cin >> Answer;
+    if (Answer == 'y' || Answer == 'Y')
+        return -1;
+
+    cout << "Do You want to give access To List Client ? (y/n)\n";
+    cin >> Answer;
+    if (Answer == 'y' || Answer == 'Y')
+        TotalPermissions = TotalPermissions |1;
+
+    cout << "Do You want to give access To Add Client ? (y/n)\n";
+    cin >> Answer;
+    if (Answer == 'y' || Answer == 'Y')
+        TotalPermissions = TotalPermissions |2;
+
+    cout << "Do You want to give access To Delete Client ? (y/n)\n";
+    cin >> Answer;
+    if (Answer == 'y' || Answer == 'Y')
+        TotalPermissions = TotalPermissions |4;
+
+    cout << "Do You want to give access To Update Client ? (y/n)\n";
+    cin >> Answer;
+    if (Answer == 'y' || Answer == 'Y')
+        TotalPermissions = TotalPermissions |8;
+
+    cout << "Do You want to give access To Find Client ? (y/n)\n";
+    cin >> Answer;
+    if (Answer == 'y' || Answer == 'Y')
+        TotalPermissions = TotalPermissions |16;
+
+    cout << "Do You want to give access To Trasactions Client ? (y/n)\n";
+    cin >> Answer;
+    if (Answer == 'y' || Answer == 'Y')
+        TotalPermissions = TotalPermissions |32;
+
+    cout << "Do You want to give access To Manage Users ? (y/n)\n";
+    cin >> Answer;
+    if (Answer == 'y' || Answer == 'Y')
+        TotalPermissions = TotalPermissions |64;
+
+    return TotalPermissions;
+}
+stUser ReadUser()
+{
+    stUser User;
+    cout << "Enter UserName?\n";
+    getline(cin >> ws, User.UserName);
+
+    while (UserExistByUserName(User.UserName))
+    {
+        cout << "This User with username " << User.UserName << " Already exist.";
+        getline(cin >> ws, User.UserName);
+
+    }
+    cout << "Enter Password?\n";
+    getline(cin >> ws, User.Password);
+
+    User.Permission = ReadPermission();
+
+    return User;
+
+
+}
+void ShowAddUserScreen()
+{
+    cout << "\n-----------------------------------\n";
+    cout << "\nAdd User Screen";
+    cout << "\n-----------------------------------\n";
+    
+    stUser User;
+    vector<stUser> vUsers = LoadUsersDataFromFile(UsersFileName);
+    char Answer = 'n';
+    do {
+        User = ReadUser();
+        vUsers.push_back(User);
+        SaveUsersDateToFile(vUsers, UsersFileName);
+        cout << "User Added succesfully\n";
+        cout << "Do You Wnat to add more users? (y/n)\n";
+        cin >> Answer;
+    } while (Answer == 'y' || Answer == 'Y');
 }
 void PerfromUserOptions(eUserOptions UserOptions) {
     switch (UserOptions)
@@ -1129,6 +1235,11 @@ void PerfromUserOptions(eUserOptions UserOptions) {
     case eUserOptions::eDeleteUser:
         system("cls");
         ShowDeleteUserScreen();
+        GoBackToManageUsersMenue();
+        break;
+    case eUserOptions::eAddUser:
+        system("cls");
+        ShowAddUserScreen();
         GoBackToManageUsersMenue();
         break;
     
